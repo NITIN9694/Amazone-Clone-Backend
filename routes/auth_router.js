@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user_model");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const auth = require("../middlewares/auth");
 
 
 const authRouter =  express.Router();
@@ -20,7 +21,7 @@ try{
     }
     const bcryptPassword = await bcryptjs.hash(password,8)
     
-    let user =new User({
+    let user = new User({
         email,
         password:bcryptPassword,
         name,
@@ -59,6 +60,40 @@ authRouter.post("/api/login",async(req,res)=>{
         res.status(500).json(e);
     }
 })
+
+authRouter.post("/tokenIsValid",async(req,res)=>{
+    try{
+        const token = req.header("x-auth-token");
+        if(!token)return res.json(false);
+        const verifed =jwt.verify(token,"password");  
+    }catch(e){
+        res.status(500).json({msg:e});
+    }
+})
+
+authRouter.post("/tokenIsValid", async (req, res) => {
+    try {
+      const token = req.header("x-auth-token");
+      if (!token) return res.json(false);
+      const verified = jwt.verify(token, "passwordKey");
+      if (!verified) return res.json(false);
+  
+      const user = await User.findById(verified.id);
+      if (!user) return res.json(false);
+      res.json(true);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+  
+
+authRouter.get("/api/getProfile",auth,async(req,res)=>{
+    const user = await User.findById(req.user);
+    res.json({ ...user._doc, token: req.token });
+
+})
+
+
 
 
 module.exports = authRouter;
