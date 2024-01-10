@@ -5,9 +5,12 @@ const app = express();
 
 /*import routes */
 const authRouter = require("./routes/auth_router");
+const adminRouter = require("./routes/admin_router");
+
 
 app.use(express.json());
 app.use(authRouter);
+app.use(adminRouter);
 
 
 
